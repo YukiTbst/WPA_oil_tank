@@ -10,12 +10,13 @@ template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(a
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 HardwareSerial& odrive_serial = Serial2;
 Stream& serial_(odrive_serial);
-myOdrive odrive1(odrive_serial, 0);
-myOdrive odrive2(odrive_serial, 1);
+myOdrive odrive1(odrive_serial, 1);
+myOdrive odrive2(odrive_serial, 0);
 myOdrive *odrive_list[]={&odrive1, &odrive2};
 const int sda=22;
 const int scl=23;
 bool stop=true;//急停标志位
+bool s_print=false;
 float vel=0;
 float theta=0;
 float omega=0;
@@ -152,6 +153,17 @@ void sensor_read( void * parameter )
     
     
 }
+void data_print_serial(void * parameter)//通过串口打印信息
+{
+    while(1)
+    {
+        delay(10);
+        if(s_print)
+        {
+            Serial.println("theta: "+String(theta,3)+"\t"+"omega: "+String(omega,3)+"\t"+"beta: "+String(beta,3)+"\t");
+        }
+    }
+}
 void motor_driver(void * parameter)
 {
     for(int i=0; i<2; i++)
@@ -218,6 +230,24 @@ void command_reader(void * parameter)
         String str=Serial.readStringUntil('\n');
         if(str.length()<2)
         {
+            if(str.length()==1)//单个字符的命令
+            {
+                char c1 = str[0];
+                switch(c1)
+                {
+                    case 's':
+                    stop=true;//输入stop急停
+                    break;
+                    case 'e':
+                    stop=false;//输入enable启动
+                    break;
+                    case 'p':
+                    s_print=!s_print;
+                    break;
+                    default:
+                    break;
+                }
+            }
             continue;
         }
         char c1 = str[0];
@@ -240,12 +270,7 @@ void command_reader(void * parameter)
             EEPROM.writeFloat(sizeof(float)*2, kd);
             Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
             break;
-            case 's':
-            stop=true;//输入stop急停
-            break;
-            case 'e':
-            stop=false;//输入enable启动
-            break;
+            
             default:
             break;
         }
@@ -288,7 +313,7 @@ void setup()
               "Tasktwo",        /*带任务名称的字符串*/
               10000,            /*堆栈大小，单位为字节*/
               NULL,             /*作为任务输入传递的参数*/
-              2,                /*任务的优先级*/
+              3,                /*任务的优先级*/
               NULL,
               0);  
     xTaskCreatePinnedToCore(
@@ -296,7 +321,7 @@ void setup()
               "Taskthree",        /*带任务名称的字符串*/
               10000,            /*堆栈大小，单位为字节*/
               NULL,             /*作为任务输入传递的参数*/
-              3,                /*任务的优先级*/
+              4,                /*任务的优先级*/
               NULL,
               1); 
     xTaskCreatePinnedToCore(
@@ -304,9 +329,17 @@ void setup()
               "Taskfour",        /*带任务名称的字符串*/
               10000,            /*堆栈大小，单位为字节*/
               NULL,             /*作为任务输入传递的参数*/
+              2,                /*任务的优先级*/
+              NULL,
+              1);       
+    xTaskCreatePinnedToCore(
+              data_print_serial,          /*任务函数*/
+              "Print_data_by_serial",        /*带任务名称的字符串*/
+              10000,            /*堆栈大小，单位为字节*/
+              NULL,             /*作为任务输入传递的参数*/
               1,                /*任务的优先级*/
               NULL,
-              1);               
+              0);               
   // put your setup code here, to run once:
 
 }
