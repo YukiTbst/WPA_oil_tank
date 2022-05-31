@@ -11,12 +11,19 @@ template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(a
 HardwareSerial& odrive_serial = Serial2;
 Stream& serial_(odrive_serial);
 myOdrive odrive1(odrive_serial, 0);
+myOdrive odrive2(odrive_serial, 1);
+myOdrive *odrive_list[]={&odrive1, &odrive2};
+const int sda=22;
+const int scl=23;
+bool stop=true;//急停标志位
 float vel=0;
 float theta=0;
 float omega=0;
 float beta=0;
-TFT_eSPI tft = TFT_eSPI();  // Invoke custom library
+float vel_bal=90;
+//TFT_eSPI tft = TFT_eSPI();  // Invoke custom library
 float kp, ki, kd, ref, u;
+/*
 void tft_clear()
 {
 
@@ -33,6 +40,7 @@ void tft_print(String msg, int line)
     tft.setCursor(5, y_s, 2);
     tft.print(msg);
 }
+*/
 uint8_t sensor_finder()
 {
     int i, iRetry;
@@ -60,7 +68,7 @@ uint8_t sensor_finder()
 	//Serial.print("please check your connection\r\n");
     return 0xff;
 }
-
+/*
 void display( void * parameter )
 {
     tft_clear();
@@ -79,6 +87,7 @@ void display( void * parameter )
 
 
 }
+*/
 void sensor_read( void * parameter )
 {
     uint64_t last_time=millis();
@@ -145,22 +154,61 @@ void sensor_read( void * parameter )
 }
 void motor_driver(void * parameter)
 {
-    odrive1.reboot();
-    odrive1.Odrive_init();
-    odrive1.set_vel(1);
+    for(int i=0; i<2; i++)
+    {
+        odrive_list[i]->reboot();
+    }
+    for(int i=0; i<2; i++)
+    {
+        odrive_list[i]->Odrive_init();
+    }
+    for(int i=0; i<2; i++)
+    {
+        odrive_list[i]->set_vel(1);
+    }
     controller_PID controller1(kp, ki, kd);
     ref=theta;
     while(1)
     {
-        controller1.ref_set(ref);
-        controller1.p_set(kp);
-        controller1.i_set(ki);
-        controller1.d_set(kd);
-        float vel_ref=controller1.run_one_step(theta, omega);
-        vel=odrive1.get_vel();
-        u=vel_ref;
-        odrive1.set_vel(vel_ref);
         delay(20);
+        if(stop)
+        {
+            for(int i=0; i<2; i++)
+            {
+                odrive_list[i]->set_vel(1);
+            }
+            continue;
+        }
+        else
+        {
+            controller1.ref_set(ref);
+            controller1.p_set(kp);
+            controller1.i_set(ki);
+            controller1.d_set(kd);
+            float vel_ref=controller1.run_one_step(theta, omega);
+            //vel=odrive1.get_vel();
+            u=vel_ref;
+            float umax=(160-vel_bal)*2;
+            if(u>umax)
+            {
+                u=umax;
+            }
+            if(u<-umax)
+            {
+                u=-umax;
+            }
+            float vels[2];
+            vels[0]=vel_bal+u/2;
+            vels[1]=2*vel_bal-vels[0];
+            for(int i=0;i<2;i++)
+            {
+                if(vels[i]<0)
+                {
+                    vels[i]=-vels[i];
+                }
+                odrive_list[i]->set_vel(vels[i]);
+            }
+        }
     }
 }
 void command_reader(void * parameter)
@@ -180,14 +228,23 @@ void command_reader(void * parameter)
             case 'p':
             kp=data;
             EEPROM.writeFloat(0, kp);
+            Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
             break;
             case 'i':
             ki=data;
             EEPROM.writeFloat(sizeof(float), ki);
+            Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
             break;
             case 'd':
             kd=data;
             EEPROM.writeFloat(sizeof(float)*2, kd);
+            Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
+            break;
+            case 's':
+            stop=true;//输入stop急停
+            break;
+            case 'e':
+            stop=false;//输入enable启动
             break;
             default:
             break;
@@ -201,10 +258,10 @@ void setup()
 {
     odrive_serial.begin(115200);
     Serial.begin(115200);
-    Wire.begin(2, 15, 400000);
-    tft.init();
-    tft.setRotation(4);
-    tft.fillScreen(TFT_BLACK);
+    Wire.begin(sda, scl, 400000);
+    //tft.init();
+    //tft.setRotation(4);
+    //tft.fillScreen(TFT_BLACK);
     if (!EEPROM.begin(4096)) 
     {
         Serial.println("Failed to initialise EEPROM");
@@ -215,14 +272,17 @@ void setup()
     kp=EEPROM.readFloat(0);
     ki=EEPROM.readFloat(sizeof(float));
     kd=EEPROM.readFloat(sizeof(float)*2);
+    Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
+    /*
     xTaskCreatePinnedToCore(
-              display,          /*任务函数*/
-              "TaskOne",        /*带任务名称的字符串*/
-              10000,            /*堆栈大小，单位为字节*/
-              NULL,             /*作为任务输入传递的参数*/
-              1,                /*任务的优先级*/
+              display,          
+              "TaskOne",       
+              10000,            
+              NULL,            
+              1,               
               NULL,
               1);  
+              */
     xTaskCreatePinnedToCore(
               sensor_read,          /*任务函数*/
               "Tasktwo",        /*带任务名称的字符串*/
