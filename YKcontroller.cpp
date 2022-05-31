@@ -22,7 +22,7 @@ float controller_PID::run_one_step(float x, float x_dot)
     {
         float dt=((float)(this_time-last_running_time))/1000.0;
         last_i+=dt*(ref-x)*ki;
-        d_out=x_dot*kd;
+        d_out=-x_dot*kd;
     }
     p_out=(ref-x)*kp;
     last_running_time=this_time;
