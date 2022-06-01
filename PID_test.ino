@@ -160,7 +160,7 @@ void data_print_serial(void * parameter)//通过串口打印信息
         delay(10);
         if(s_print)
         {
-            Serial.println("theta: "+String(theta,3)+"\t"+"omega: "+String(omega,3)+"\t"+"beta: "+String(beta,3)+"\t");
+            Serial.println("theta: "+String(theta,3)+",\t"+"omega: "+String(omega,3)+",\t"+"beta: "+String(beta,3)+",\t"+"dv: "+String(u,3)+",\t"+"ref: "+String(ref,3)+",\t");
         }
     }
 }
