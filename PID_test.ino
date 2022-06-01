@@ -15,6 +15,7 @@ myOdrive odrive2(odrive_serial, 0);
 myOdrive *odrive_list[]={&odrive1, &odrive2};
 const int sda=22;
 const int scl=23;
+//以下是可以被设置的参数
 bool stop=true;//急停标志位
 bool s_print=false;
 float vel=0;
@@ -22,8 +23,31 @@ float theta=0;
 float omega=0;
 float beta=0;
 float vel_bal=90;
-//TFT_eSPI tft = TFT_eSPI();  // Invoke custom library
 float kp, ki, kd, ref, u;
+float command_received=0;//1:enable, 2:stop
+const int paramenters_num=11;
+float* parameters[paramenters_num]=
+{
+    &vel,//0
+    &theta, &omega, &beta,//1, 2, 3
+    &vel_bal, &ref, &u, //4, 5, 6
+    &kp, &ki, &kd, //7, 8, 9
+    &command_received//10
+}
+int read_modes[paramenters_num];//记得把他们都变成0
+#define VEL 0
+#define THETA 1
+#define OMEGA 2
+#define BETA 3
+#define VEL_BAL 4
+#define REF 5
+#define U 6
+#define KP 7
+#define KI 8
+#define KD 9
+#define COMMAND_RECEIVED 10
+//TFT_eSPI tft = TFT_eSPI();  // Invoke custom library
+
 /*
 void tft_clear()
 {
