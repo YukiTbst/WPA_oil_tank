@@ -12,7 +12,8 @@
 #define KI 8
 #define KD 9
 #define COMMAND_RECEIVED 10
-const int paramenters_num=11;
+#define PUBLISH_FREQ 11
+const int paramenters_num=12;
 extern bool stop;//急停标志位
 extern bool s_print;
 extern float paramenters[paramenters_num];

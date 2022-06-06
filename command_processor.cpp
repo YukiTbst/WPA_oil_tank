@@ -3,8 +3,8 @@
 
 bool stop=true;//急停标志位
 bool s_print=false;
-float paramenters[paramenters_num]={0, 0, 0, 0, 90, 0, 0, 0, 0, 0, 0};
-int read_modes[paramenters_num]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+float paramenters[paramenters_num]={0, 0, 0, 0, 90, 0, 0, 0, 0, 0, 0, 1};
+int read_modes[paramenters_num]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 void command_process(String cmd_rec);
 bool command_check(String cmd_rec)
 {
