@@ -7,6 +7,7 @@
 #include "YKcontroller.h"
 #include "EEPROM.h"
 #include "command_processor.h"
+bool is_test=true;
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 HardwareSerial& odrive_serial = Serial2;
@@ -235,6 +236,26 @@ void command_reader(void * parameter)
     }
 
 }
+void task_for_test(void * parameter)
+{
+    while(1)
+    {
+        String str=Serial.readStringUntil('\n');
+        if(str.length()>0)
+        {
+            if(command_check(str))
+            {
+                Serial.println("ok");
+            }
+            else
+            {
+                Serial.println("fuck");
+            }
+        }
+        delay(10);
+    }
+    
+}
 void setup() 
 {
     odrive_serial.begin(115200);
@@ -269,38 +290,55 @@ void setup()
         paramenters[KD]=30;
     }
     Serial.println("P="+String(paramenters[KP],0)+", "+"I="+String(paramenters[KI],0)+", "+"D="+String(paramenters[KD],0));
-    xTaskCreatePinnedToCore(
-              sensor_read,          /*任务函数*/
-              "Tasktwo",        /*带任务名称的字符串*/
-              10000,            /*堆栈大小，单位为字节*/
-              NULL,             /*作为任务输入传递的参数*/
-              3,                /*任务的优先级*/
-              NULL,
-              0);  
-    xTaskCreatePinnedToCore(
-              motor_driver,          /*任务函数*/
-              "Taskthree",        /*带任务名称的字符串*/
-              10000,            /*堆栈大小，单位为字节*/
-              NULL,             /*作为任务输入传递的参数*/
-              4,                /*任务的优先级*/
-              NULL,
-              1); 
-    xTaskCreatePinnedToCore(
-              command_reader,          /*任务函数*/
-              "Taskfour",        /*带任务名称的字符串*/
-              10000,            /*堆栈大小，单位为字节*/
-              NULL,             /*作为任务输入传递的参数*/
-              2,                /*任务的优先级*/
-              NULL,
-              1);       
-    xTaskCreatePinnedToCore(
-              data_print_serial,          /*任务函数*/
-              "Print_data_by_serial",        /*带任务名称的字符串*/
-              10000,            /*堆栈大小，单位为字节*/
-              NULL,             /*作为任务输入传递的参数*/
-              1,                /*任务的优先级*/
-              NULL,
-              0);               
+    if(is_test)
+    {
+        Serial.println("it's a test");
+        xTaskCreatePinnedToCore(
+            task_for_test,          
+            "task_for_test",        
+            10000,            
+            NULL,             
+            5,               
+            NULL,
+            0);     
+    }
+    else
+    {
+        xTaskCreatePinnedToCore(
+            sensor_read,          /*任务函数*/
+            "Tasktwo",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            3,                /*任务的优先级*/
+            NULL,
+            0);  
+        xTaskCreatePinnedToCore(
+            motor_driver,          /*任务函数*/
+            "Taskthree",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            4,                /*任务的优先级*/
+            NULL,
+            1); 
+        xTaskCreatePinnedToCore(
+            command_reader,          /*任务函数*/
+            "Taskfour",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            2,                /*任务的优先级*/
+            NULL,
+            1);       
+        xTaskCreatePinnedToCore(
+            data_print_serial,          /*任务函数*/
+            "Print_data_by_serial",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            1,                /*任务的优先级*/
+            NULL,
+            0);
+    }
+    
+                        
   // put your setup code here, to run once:
 
 }
