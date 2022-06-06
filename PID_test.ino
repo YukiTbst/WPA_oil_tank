@@ -6,6 +6,7 @@
 #include "odrive.h"
 #include "YKcontroller.h"
 #include "EEPROM.h"
+#include "command_processor.h"
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 HardwareSerial& odrive_serial = Serial2;
@@ -15,57 +16,8 @@ myOdrive odrive2(odrive_serial, 0);
 myOdrive *odrive_list[]={&odrive1, &odrive2};
 const int sda=22;
 const int scl=23;
-//以下是可以被设置的参数
-bool stop=true;//急停标志位
-bool s_print=false;
-float vel=0;
-float theta=0;
-float omega=0;
-float beta=0;
-float vel_bal=90;
-float kp, ki, kd, ref, u;
-float command_received=0;//1:enable, 2:stop
-const int paramenters_num=11;
-float* parameters[paramenters_num]=
-{
-    &vel,//0
-    &theta, &omega, &beta,//1, 2, 3
-    &vel_bal, &ref, &u, //4, 5, 6
-    &kp, &ki, &kd, //7, 8, 9
-    &command_received//10
-}
-int read_modes[paramenters_num];//记得把他们都变成0
-#define VEL 0
-#define THETA 1
-#define OMEGA 2
-#define BETA 3
-#define VEL_BAL 4
-#define REF 5
-#define U 6
-#define KP 7
-#define KI 8
-#define KD 9
-#define COMMAND_RECEIVED 10
-//TFT_eSPI tft = TFT_eSPI();  // Invoke custom library
+//可以被设置的参数目前在command_processor.h里
 
-/*
-void tft_clear()
-{
-
-    tft.setCursor(0, 0, 7);
-    tft.print("                                                                                                                                                                                 ");
-    tft.setCursor(0, tft.fontHeight(7), 7);
-    tft.print("                                                                                                                                                                                 ");
-}
-void tft_print(String msg, int line)
-{
-    //tft.setTextSize(2);
-    int fh=tft.fontHeight(2);
-    int y_s=line*(fh+3)+2;
-    tft.setCursor(5, y_s, 2);
-    tft.print(msg);
-}
-*/
 uint8_t sensor_finder()
 {
     int i, iRetry;
@@ -93,26 +45,6 @@ uint8_t sensor_finder()
 	//Serial.print("please check your connection\r\n");
     return 0xff;
 }
-/*
-void display( void * parameter )
-{
-    tft_clear();
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft_print("From wyq : )", 0);
-    while(1)
-    {
-        tft_print("vel: "+String(vel,3)+"  ",1);
-        tft_print("theta: "+String(theta,3)+"  ",2);
-        tft_print("omega: "+String(omega,3)+"  ",3);
-        tft_print("beta: "+String(beta,3)+"  ",4);
-        tft_print(String(kp,0)+", "+String(ki,0)+", "+String(kd,0),5);
-        tft_print(String(ref,3)+", "+String(u,0)+", "+String(u/(ref-theta),0),6);
-        delay(50);
-    }
-
-
-}
-*/
 void sensor_read( void * parameter )
 {
     uint64_t last_time=millis();
@@ -165,12 +97,12 @@ void sensor_read( void * parameter )
         }
         //Serial.print("\n");
         //delay(500);
-        theta=aggas[11]/180.0f*3.14159f;
+        paramenters[THETA]=aggas[11]/180.0f*3.14159f;
         uint64_t this_time=millis();
         float dt=((float)(this_time-last_time))/1000.0f;
-        float last_omega=omega;
-        omega=aggas[5]/180.0f*3.14159f;
-        beta=(omega-last_omega)/dt;
+        float last_omega=paramenters[OMEGA];
+        paramenters[OMEGA]=aggas[5]/180.0f*3.14159f;
+        paramenters[BETA]=(paramenters[OMEGA]-last_omega)/dt;
 
         delay(10);
     }
@@ -184,7 +116,7 @@ void data_print_serial(void * parameter)//通过串口打印信息
         delay(10);
         if(s_print)
         {
-            Serial.println("theta: "+String(theta,3)+",\t"+"omega: "+String(omega,3)+",\t"+"beta: "+String(beta,3)+",\t"+"dv: "+String(u,3)+",\t"+"ref: "+String(ref,3)+",\t");
+            Serial.println("theta: "+String(paramenters[THETA],3)+",\t"+"omega: "+String(paramenters[OMEGA],3)+",\t"+"beta: "+String(paramenters[BETA],3)+",\t"+"dv: "+String(paramenters[U],3)+",\t"+"ref: "+String(paramenters[REF],3)+",\t");
         }
     }
 }
@@ -202,8 +134,8 @@ void motor_driver(void * parameter)
     {
         odrive_list[i]->set_vel(1);
     }
-    controller_PID controller1(kp, ki, kd);
-    ref=theta;
+    controller_PID controller1(paramenters[KP], paramenters[KI], paramenters[KD]);
+    paramenters[REF]=paramenters[THETA];
     while(1)
     {
         delay(20);
@@ -217,25 +149,25 @@ void motor_driver(void * parameter)
         }
         else
         {
-            controller1.ref_set(ref);
-            controller1.p_set(kp);
-            controller1.i_set(ki);
-            controller1.d_set(kd);
-            float vel_ref=controller1.run_one_step(theta, omega);
+            controller1.ref_set(paramenters[REF]);
+            controller1.p_set(paramenters[KP]);
+            controller1.i_set(paramenters[KI]);
+            controller1.d_set(paramenters[KD]);
+            float vel_ref=controller1.run_one_step(paramenters[THETA], paramenters[OMEGA]);
             //vel=odrive1.get_vel();
-            u=vel_ref;
-            float umax=(160-vel_bal)*2;
-            if(u>umax)
+            paramenters[U]=vel_ref;
+            float umax=(160-paramenters[VEL_BAL])*2;
+            if(paramenters[U]>umax)
             {
-                u=umax;
+                paramenters[U]=umax;
             }
-            if(u<-umax)
+            if(paramenters[U]<-umax)
             {
-                u=-umax;
+                paramenters[U]=-umax;
             }
             float vels[2];
-            vels[0]=vel_bal+u/2;
-            vels[1]=2*vel_bal-vels[0];
+            vels[0]=paramenters[VEL_BAL]+paramenters[U]/2;
+            vels[1]=2*paramenters[VEL_BAL]-vels[0];
             for(int i=0;i<2;i++)
             {
                 if(vels[i]<0)
@@ -280,19 +212,19 @@ void command_reader(void * parameter)
         switch(c1)
         {
             case 'p':
-            kp=data;
-            EEPROM.writeFloat(0, kp);
-            Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
+            paramenters[KP]=data;
+            EEPROM.writeFloat(0, paramenters[KP]);
+            Serial.println("P="+String(paramenters[KP],0)+", "+"I="+String(paramenters[KI],0)+", "+"D="+String(paramenters[KD],0));
             break;
             case 'i':
-            ki=data;
-            EEPROM.writeFloat(sizeof(float), ki);
-            Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
+            paramenters[KI]=data;
+            EEPROM.writeFloat(sizeof(float), paramenters[KI]);
+            Serial.println("P="+String(paramenters[KP],0)+", "+"I="+String(paramenters[KI],0)+", "+"D="+String(paramenters[KD],0));
             break;
             case 'd':
-            kd=data;
-            EEPROM.writeFloat(sizeof(float)*2, kd);
-            Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
+            paramenters[KD]=data;
+            EEPROM.writeFloat(sizeof(float)*2, paramenters[KD]);
+            Serial.println("P="+String(paramenters[KP],0)+", "+"I="+String(paramenters[KI],0)+", "+"D="+String(paramenters[KD],0));
             break;
             
             default:
@@ -307,10 +239,13 @@ void setup()
 {
     odrive_serial.begin(115200);
     Serial.begin(115200);
-    Wire.begin(sda, scl, 400000);
-    //tft.init();
-    //tft.setRotation(4);
-    //tft.fillScreen(TFT_BLACK);
+    if(!Wire.begin(sda, scl, 400000))
+    {
+        Serial.println("Failed to initialise I2C");
+        Serial.println("Restarting...");
+        delay(1000);
+        ESP.restart();
+    }
     if (!EEPROM.begin(4096)) 
     {
         Serial.println("Failed to initialise EEPROM");
@@ -318,20 +253,22 @@ void setup()
         delay(1000);
         ESP.restart();
     }
-    kp=EEPROM.readFloat(0);
-    ki=EEPROM.readFloat(sizeof(float));
-    kd=EEPROM.readFloat(sizeof(float)*2);
-    Serial.println("P="+String(kp,0)+", "+"I="+String(ki,0)+", "+"D="+String(kd,0));
-    /*
-    xTaskCreatePinnedToCore(
-              display,          
-              "TaskOne",       
-              10000,            
-              NULL,            
-              1,               
-              NULL,
-              1);  
-              */
+    paramenters[KP]=EEPROM.readFloat(0);
+    if(!(paramenters[KP]==paramenters[KP]))//如果EEPROM里没写过初值，读到的PID都是nan，nan==nan返回false
+    {
+        paramenters[KP]=110;
+    }
+    paramenters[KI]=EEPROM.readFloat(sizeof(float));
+    if(!(paramenters[KI]==paramenters[KI]))
+    {
+        paramenters[KI]=0;
+    }
+    paramenters[KD]=EEPROM.readFloat(sizeof(float)*2);
+    if(!(paramenters[KD]==paramenters[KD]))
+    {
+        paramenters[KD]=30;
+    }
+    Serial.println("P="+String(paramenters[KP],0)+", "+"I="+String(paramenters[KI],0)+", "+"D="+String(paramenters[KD],0));
     xTaskCreatePinnedToCore(
               sensor_read,          /*任务函数*/
               "Tasktwo",        /*带任务名称的字符串*/
