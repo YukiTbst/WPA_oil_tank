@@ -236,6 +236,21 @@ void command_reader(void * parameter)
     }
 
 }
+void data_publisher(void * parameter)
+{
+    String pub_str="wyq";
+    for(int i=0;i<paramenters_num;i++)
+    {
+        if(read_modes[i]!=0)
+        {
+            read_modes[i]%=2;
+            pub_str+='N'+String(i)+'e'+'R'+String(paramenters[i], 3)+'e';
+        }
+    }
+    pub_str+='\n';
+    Serial.print(pub_str);
+    delay(1000/((int) paramenters[PUBLISH_FREQ]));
+}
 void task_for_test(void * parameter)
 {
     while(1)
