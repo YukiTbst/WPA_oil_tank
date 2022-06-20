@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>815</width>
+    <height>426</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPlainTextEdit" name="plainTextEdit_ser_rec">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>50</y>
+      <width>401</width>
+      <height>291</height>
+     </rect>
+    </property>
+    <property name="cursor" stdset="0">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>14</y>
+      <width>231</width>
+      <height>370</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="2">
+      <widget class="QComboBox" name="comboBox_dvel">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="text_dvel"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="text_omega"/>
+     </item>
+     <item row="5" column="2">
+      <widget class="QComboBox" name="comboBox_ref">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QLineEdit" name="text_freq"/>
+     </item>
+     <item row="0" column="2">
+      <widget class="QComboBox" name="comboBox_theta">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="12" column="2">
+      <widget class="QComboBox" name="comboBox_freq">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lab_dvel">
+       <property name="text">
+        <string>转速差：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="lab_ki">
+       <property name="text">
+        <string>KI：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="lab_beta">
+       <property name="text">
+        <string>角加速度：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="text_theta"/>
+     </item>
+     <item row="10" column="1">
+      <widget class="QLineEdit" name="text_ki"/>
+     </item>
+     <item row="9" column="1">
+      <widget class="QLineEdit" name="text_kp"/>
+     </item>
+     <item row="7" column="1">
+      <widget class="QLineEdit" name="text_u"/>
+     </item>
+     <item row="9" column="2">
+      <widget class="QComboBox" name="comboBox_kp">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="text_ref"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="lab_vel_bal">
+       <property name="text">
+        <string>平衡转速：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lab_omega">
+       <property name="text">
+        <string>角速度：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="2">
+      <widget class="QComboBox" name="comboBox_kd">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="text_beta"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="lab_ref">
+       <property name="text">
+        <string>参考角度</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QComboBox" name="comboBox_beta">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="7" column="2">
+      <widget class="QComboBox" name="comboBox_u">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="text_vel_bal"/>
+     </item>
+     <item row="10" column="2">
+      <widget class="QComboBox" name="comboBox_ki">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QComboBox" name="comboBox_omega">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QLabel" name="lab_kd">
+       <property name="text">
+        <string>KD：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QComboBox" name="comboBox_vel_bal">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>停止读取</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>停止读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>单次读取</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>循环读取</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="lab_kp">
+       <property name="text">
+        <string>KP：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="1">
+      <widget class="QLineEdit" name="text_kd"/>
+     </item>
+     <item row="12" column="0">
+      <widget class="QLabel" name="lab_freq">
+       <property name="text">
+        <string>输出频率：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="lab_theta">
+       <property name="text">
+        <string>角度：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="lab_u">
+       <property name="text">
+        <string>控制器输出：</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>345</y>
+      <width>401</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="lineEdit_ser_send"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_ser_send">
+       <property name="text">
+        <string>发送</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>10</y>
+      <width>255</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="lab_theta_2">
+         <property name="text">
+          <string>串口：</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox_ser"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_ser_refresh">
+         <property name="text">
+          <string>刷新</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_ser_status">
+       <property name="text">
+        <string>   未连接</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>815</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>true</bool>
+  </property>
+ </designerdata>
+</ui>
