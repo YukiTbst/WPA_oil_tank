@@ -15,22 +15,40 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QHBoxLayout,
-    QLabel, QLineEdit, QMainWindow, QMenuBar,
-    QPlainTextEdit, QPushButton, QSizePolicy, QStatusBar,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QDial, QGridLayout,
+    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
+    QMenuBar, QPlainTextEdit, QPushButton, QSizePolicy,
+    QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(815, 426)
+        MainWindow.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.plainTextEdit_ser_rec = QPlainTextEdit(self.centralwidget)
         self.plainTextEdit_ser_rec.setObjectName(u"plainTextEdit_ser_rec")
         self.plainTextEdit_ser_rec.setGeometry(QRect(260, 50, 401, 291))
         self.plainTextEdit_ser_rec.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
+        self.dial_theta = QDial(self.centralwidget)
+        self.dial_theta.setObjectName(u"dial_theta")
+        self.dial_theta.setGeometry(QRect(670, 230, 131, 131))
+        self.dial_theta.setCursor(QCursor(Qt.CrossCursor))
+        self.dial_theta.setLayoutDirection(Qt.LeftToRight)
+        self.dial_theta.setAutoFillBackground(True)
+        self.dial_theta.setLocale(QLocale(QLocale.Chinese, QLocale.China))
+        self.dial_theta.setMaximum(359)
+        self.dial_theta.setOrientation(Qt.Horizontal)
+        self.dial_theta.setInvertedAppearance(False)
+        self.dial_theta.setWrapping(True)
+        self.dial_theta.setNotchTarget(1.000000000000000)
+        self.dial_theta.setNotchesVisible(False)
+        self.label_ref = QLabel(self.centralwidget)
+        self.label_ref.setObjectName(u"label_ref")
+        self.label_ref.setGeometry(QRect(680, 350, 54, 21))
+        self.label_ref.setLayoutDirection(Qt.LeftToRight)
         self.widget = QWidget(self.centralwidget)
         self.widget.setObjectName(u"widget")
         self.widget.setGeometry(QRect(13, 14, 231, 370))
@@ -293,6 +311,31 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.label_ser_status)
 
+        self.widget3 = QWidget(self.centralwidget)
+        self.widget3.setObjectName(u"widget3")
+        self.widget3.setGeometry(QRect(690, 50, 101, 91))
+        self.verticalLayout = QVBoxLayout(self.widget3)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.comboBox_val_set = QComboBox(self.widget3)
+        self.comboBox_val_set.addItem("")
+        self.comboBox_val_set.addItem("")
+        self.comboBox_val_set.addItem("")
+        self.comboBox_val_set.addItem("")
+        self.comboBox_val_set.setObjectName(u"comboBox_val_set")
+
+        self.verticalLayout.addWidget(self.comboBox_val_set)
+
+        self.lineEdit_val_set = QLineEdit(self.widget3)
+        self.lineEdit_val_set.setObjectName(u"lineEdit_val_set")
+
+        self.verticalLayout.addWidget(self.lineEdit_val_set)
+
+        self.pushButton_val_set = QPushButton(self.widget3)
+        self.pushButton_val_set.setObjectName(u"pushButton_val_set")
+
+        self.verticalLayout.addWidget(self.pushButton_val_set)
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -309,6 +352,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.label_ref.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.comboBox_dvel.setItemText(0, QCoreApplication.translate("MainWindow", u"\u505c\u6b62\u8bfb\u53d6", None))
         self.comboBox_dvel.setItemText(1, QCoreApplication.translate("MainWindow", u"\u5355\u6b21\u8bfb\u53d6", None))
         self.comboBox_dvel.setItemText(2, QCoreApplication.translate("MainWindow", u"\u5faa\u73af\u8bfb\u53d6", None))
@@ -379,5 +423,12 @@ class Ui_MainWindow(object):
         self.lab_theta_2.setText(QCoreApplication.translate("MainWindow", u"\u4e32\u53e3\uff1a", None))
         self.pushButton_ser_refresh.setText(QCoreApplication.translate("MainWindow", u"\u5237\u65b0", None))
         self.label_ser_status.setText(QCoreApplication.translate("MainWindow", u"   \u672a\u8fde\u63a5", None))
+        self.comboBox_val_set.setItemText(0, QCoreApplication.translate("MainWindow", u"KP", None))
+        self.comboBox_val_set.setItemText(1, QCoreApplication.translate("MainWindow", u"KI", None))
+        self.comboBox_val_set.setItemText(2, QCoreApplication.translate("MainWindow", u"KD", None))
+        self.comboBox_val_set.setItemText(3, QCoreApplication.translate("MainWindow", u"\u8f93\u51fa\u9891\u7387", None))
+
+        self.lineEdit_val_set.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.pushButton_val_set.setText(QCoreApplication.translate("MainWindow", u"\u8bbe\u7f6e", None))
     # retranslateUi
 
