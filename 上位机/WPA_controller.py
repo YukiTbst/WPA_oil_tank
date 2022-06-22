@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
                 self.rec_temp+=rec
                 if rec=="\n":
                     self.rec_data_process(self.rec_temp)
+                    self.rec_temp=""
                 self.ui.plainTextEdit_ser_rec.setPlainText(self.ui.plainTextEdit_ser_rec.toPlainText()+rec)
                 self.ui.plainTextEdit_ser_rec.moveCursor(self.ui.plainTextEdit_ser_rec.textCursor().End)
     def ser_send(self):
@@ -141,17 +142,13 @@ class MainWindow(QMainWindow):
             return
         data_and_checker[1]="~"+data_and_checker[1]
         if data_and_checker[1]==check_str_cal(data_and_checker[0]):
-            print("ok")
             idx_and_val=data_and_checker[0].split("e")
-            if(len(idx_and_val)%2==0):
-                for i in range(len(idx_and_val)/2):
+            if(len(idx_and_val)%2==1):
+                for i in range(round((len(idx_and_val)-1)/2)):
                     idx=int(get_float_from_str(idx_and_val[2*i]))
                     val=get_float_from_str(idx_and_val[2*i+1])
                     self.val_display(idx, val)
-        else:
-            print("fuck")
-            print(data_and_checker[1])
-            print(check_str_cal(data_and_checker[0]))
+            
     def val_display(self, idx, val):
         if(idx>len(self.parameter_texts)):
             return
