@@ -16,9 +16,11 @@
 const int paramenters_num=12;
 extern bool stop;//急停标志位
 extern bool s_print;
+extern bool is_test;
 extern float paramenters[paramenters_num];
 extern int read_modes[paramenters_num];
 //vel_bal=90时，一组比较好的PD值为p=110，d=30
 void command_process(String cmd_rec);
 bool command_check(String cmd_rec);
+String check_bytes_cal(String cmd_str);
 #endif

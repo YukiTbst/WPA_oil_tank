@@ -7,7 +7,7 @@
 #include "YKcontroller.h"
 #include "EEPROM.h"
 #include "command_processor.h"
-bool is_test=true;
+
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 HardwareSerial& odrive_serial = Serial2;
@@ -238,33 +238,50 @@ void command_reader(void * parameter)
 }
 void data_publisher(void * parameter)
 {
-    String pub_str="wyq";
-    for(int i=0;i<paramenters_num;i++)
+    while(1)
     {
-        if(read_modes[i]!=0)
+        if(((int) paramenters[PUBLISH_FREQ])<=0)
         {
-            read_modes[i]%=2;
-            pub_str+='N'+String(i)+'e'+'R'+String(paramenters[i], 3)+'e';
+            paramenters[PUBLISH_FREQ]=1;
         }
+        delay(1000/((int) paramenters[PUBLISH_FREQ]));
+        String pub_str="wyq";
+        for(int i=0;i<paramenters_num;i++)
+        {
+            if(read_modes[i]!=0)
+            {
+                read_modes[i]%=2;
+                pub_str+='N'+String(i)+'e'+'R'+String(paramenters[i], 3)+'e';
+            }
+        }
+        if(pub_str=="wyq")
+        {
+            continue;
+        }
+        pub_str+=check_bytes_cal(pub_str);
+        Serial.print(pub_str);
+        
     }
-    pub_str+='\n';
-    Serial.print(pub_str);
-    delay(1000/((int) paramenters[PUBLISH_FREQ]));
+    
 }
 void task_for_test(void * parameter)
 {
     while(1)
     {
-        String str=Serial.readStringUntil('\n');
-        if(str.length()>0)
+        if(Serial.available())
         {
-            if(command_check(str))
+            String str=Serial.readStringUntil('\n');
+            if(str.length()>0)
             {
-                Serial.println("ok");
-            }
-            else
-            {
-                Serial.println("fuck");
+                if(command_check(str))
+                {
+                    Serial.println("ok");
+                    command_process(str);
+                }
+                else
+                {
+                    Serial.println("fuck");
+                }
             }
         }
         delay(10);
@@ -273,6 +290,7 @@ void task_for_test(void * parameter)
 }
 void setup() 
 {
+    is_test=true;
     odrive_serial.begin(115200);
     Serial.begin(115200);
     if(!Wire.begin(sda, scl, 400000))
@@ -315,7 +333,15 @@ void setup()
             NULL,             
             5,               
             NULL,
-            0);     
+            0);
+        xTaskCreatePinnedToCore(
+            data_publisher,          
+            "data_publisher",        
+            10000,            
+            NULL,             
+            4,               
+            NULL,
+            0);          
     }
     else
     {
