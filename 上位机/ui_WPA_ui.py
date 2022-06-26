@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QDial, QGridLayout,
-    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
-    QMenuBar, QPlainTextEdit, QPushButton, QSizePolicy,
-    QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDial,
+    QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+    QMainWindow, QMenuBar, QPlainTextEdit, QPushButton,
+    QSizePolicy, QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -37,11 +37,13 @@ class Ui_MainWindow(object):
         self.dial_theta.setGeometry(QRect(670, 230, 131, 131))
         self.dial_theta.setCursor(QCursor(Qt.CrossCursor))
         self.dial_theta.setLayoutDirection(Qt.LeftToRight)
-        self.dial_theta.setAutoFillBackground(True)
+        self.dial_theta.setAutoFillBackground(False)
         self.dial_theta.setLocale(QLocale(QLocale.Chinese, QLocale.China))
-        self.dial_theta.setMaximum(359)
-        self.dial_theta.setOrientation(Qt.Horizontal)
+        self.dial_theta.setMinimum(-180)
+        self.dial_theta.setMaximum(179)
+        self.dial_theta.setOrientation(Qt.Vertical)
         self.dial_theta.setInvertedAppearance(False)
+        self.dial_theta.setInvertedControls(False)
         self.dial_theta.setWrapping(True)
         self.dial_theta.setNotchTarget(1.000000000000000)
         self.dial_theta.setNotchesVisible(False)
@@ -49,6 +51,9 @@ class Ui_MainWindow(object):
         self.label_ref.setObjectName(u"label_ref")
         self.label_ref.setGeometry(QRect(680, 350, 54, 21))
         self.label_ref.setLayoutDirection(Qt.LeftToRight)
+        self.checkBox_ser_display = QCheckBox(self.centralwidget)
+        self.checkBox_ser_display.setObjectName(u"checkBox_ser_display")
+        self.checkBox_ser_display.setGeometry(QRect(580, 50, 79, 20))
         self.widget = QWidget(self.centralwidget)
         self.widget.setObjectName(u"widget")
         self.widget.setGeometry(QRect(13, 14, 231, 370))
@@ -353,6 +358,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.label_ref.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.checkBox_ser_display.setText(QCoreApplication.translate("MainWindow", u"\u8fd0\u884c", None))
         self.comboBox_dvel.setItemText(0, QCoreApplication.translate("MainWindow", u"\u505c\u6b62\u8bfb\u53d6", None))
         self.comboBox_dvel.setItemText(1, QCoreApplication.translate("MainWindow", u"\u5355\u6b21\u8bfb\u53d6", None))
         self.comboBox_dvel.setItemText(2, QCoreApplication.translate("MainWindow", u"\u5faa\u73af\u8bfb\u53d6", None))
