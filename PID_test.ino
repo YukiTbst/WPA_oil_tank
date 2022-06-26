@@ -7,7 +7,6 @@
 #include "YKcontroller.h"
 #include "EEPROM.h"
 #include "command_processor.h"
-
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 HardwareSerial& odrive_serial = Serial2;
@@ -207,6 +206,35 @@ void command_reader(void * parameter)
             }
             continue;
         }
+        else
+        {
+            if(command_check(str))
+                {
+                    float p=paramenters[KP];
+                    float i=paramenters[KI];
+                    float d=paramenters[KD];
+                    command_process(str);
+                    if(p!=paramenters[KP])
+                    {
+                        EEPROM.writeFloat(0, paramenters[KP]);
+                        delay(1);
+                        EEPROM.commit();      
+                    }
+                    if(i!=paramenters[KI])
+                    {
+                        EEPROM.writeFloat(sizeof(float), paramenters[KI]);
+                        delay(1);
+                        EEPROM.commit();     
+                    }
+                    if(i!=paramenters[KD])
+                    {
+                        EEPROM.writeFloat(sizeof(float)*2, paramenters[KD]);
+                        delay(1);
+                        EEPROM.commit();     
+                    }
+                }
+        }
+        /*
         char c1 = str[0];
         str=str.substring(1);
         float data=str.toFloat();
@@ -232,7 +260,8 @@ void command_reader(void * parameter)
             break;
         }
         delay(1);
-        EEPROM.commit();               
+        EEPROM.commit();      
+        */         
     }
 
 }
@@ -290,7 +319,7 @@ void task_for_test(void * parameter)
 }
 void setup() 
 {
-    is_test=true;
+    is_test=false;
     odrive_serial.begin(115200);
     Serial.begin(115200);
     if(!Wire.begin(sda, scl, 400000))
@@ -369,14 +398,22 @@ void setup()
             2,                /*任务的优先级*/
             NULL,
             1);       
+        // xTaskCreatePinnedToCore(
+        //     data_print_serial,          /*任务函数*/
+        //     "Print_data_by_serial",        /*带任务名称的字符串*/
+        //     10000,            /*堆栈大小，单位为字节*/
+        //     NULL,             /*作为任务输入传递的参数*/
+        //     1,                /*任务的优先级*/
+        //     NULL,
+        //     0);
         xTaskCreatePinnedToCore(
-            data_print_serial,          /*任务函数*/
-            "Print_data_by_serial",        /*带任务名称的字符串*/
-            10000,            /*堆栈大小，单位为字节*/
-            NULL,             /*作为任务输入传递的参数*/
-            1,                /*任务的优先级*/
+            data_publisher,          
+            "data_publisher",        
+            10000,            
+            NULL,             
+            1,               
             NULL,
-            0);
+            0);         
     }
     
                         
