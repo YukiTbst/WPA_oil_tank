@@ -11,6 +11,7 @@ import pandas as  pd
 import configparser
 import os
 from functools import partial
+from threading import Thread
 def check_str_cal(cmd_str: str):
     check_num=0
     for i in range(len(cmd_str)):
@@ -48,9 +49,12 @@ class MainWindow(QMainWindow):
         #串口连接
         self.ui.comboBox_ser.activated[int].connect(self.ser_connect)
         #定时器，用于读取串口
-        self.timer=QTimer(self)
-        self.timer.timeout.connect(self.timer_interrupt)
-        self.timer.start(50)
+        # self.timer=QTimer(self)
+        # self.timer.timeout.connect(self.timer_interrupt)
+        # self.timer.start(50)
+        #线程，替换定时器
+        thread=Thread(target=self.ser_process_thread)
+        thread.start()
         #发送指令
         self.ui.pushButton_ser_send.clicked.connect(self.ser_send)
         #把参数显示与参数配置加入list
@@ -97,8 +101,9 @@ class MainWindow(QMainWindow):
                 if rec=="\n":
                     self.rec_data_process(self.rec_temp)
                     self.rec_temp=""
-                self.ui.plainTextEdit_ser_rec.setPlainText(self.ui.plainTextEdit_ser_rec.toPlainText()+rec)
-                self.ui.plainTextEdit_ser_rec.moveCursor(self.ui.plainTextEdit_ser_rec.textCursor().End)
+                if self.ui.checkBox_ser_display.isChecked():
+                    self.ui.plainTextEdit_ser_rec.setPlainText(self.ui.plainTextEdit_ser_rec.toPlainText()+rec)
+                    self.ui.plainTextEdit_ser_rec.moveCursor(self.ui.plainTextEdit_ser_rec.textCursor().End)
     def ser_send(self):
         if self.ser.isOpen():
             cmd_str=self.ui.lineEdit_ser_send.text()+"\n"
@@ -125,7 +130,7 @@ class MainWindow(QMainWindow):
         
     def dail_theta_process(self, theta):
         self.ui.label_ref.setText(str(theta))
-        self.val_set(5, theta)
+        self.val_set(5, theta/180*3.14)
     
     def val_set(self, idx, val):
          cmd_str="wyq"+"N"+str(idx)+"e"+"W"+str(val)+"e"
@@ -153,6 +158,29 @@ class MainWindow(QMainWindow):
         if(idx>len(self.parameter_texts)):
             return
         self.parameter_texts[idx].setText(str(val))
+    def ser_process_thread(self):
+        self.ui.lineEdit_ser_send.setText("hello")
+        while 1:   
+            if self.ser.isOpen():
+                while self.ser.inWaiting()>0:
+                    rec=self.ser.read(1).decode()
+                    self.rec_temp+=rec
+                    if rec=="\n":
+                        self.rec_data_process(self.rec_temp)
+                        self.rec_temp=""
+                    if self.ui.checkBox_ser_display.isChecked():
+                        text=self.ui.plainTextEdit_ser_rec.toPlainText()+rec
+                        print(len(text))
+                        if(len(text)>100):
+                            text=text[-100:]
+                            print(len(text))
+                        #下面两句不能直接加，需要使用信号传递给主线程的函数
+                        #self.ui.plainTextEdit_ser_rec.setPlainText(text)
+                        #self.ui.plainTextEdit_ser_rec.moveCursor(self.ui.plainTextEdit_ser_rec.textCursor().End)
+                        
+            time.sleep(0.01)
+    
+        
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     win = MainWindow()
