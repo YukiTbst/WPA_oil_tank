@@ -49,12 +49,12 @@ class MainWindow(QMainWindow):
         #串口连接
         self.ui.comboBox_ser.activated[int].connect(self.ser_connect)
         #定时器，用于读取串口
-        # self.timer=QTimer(self)
-        # self.timer.timeout.connect(self.timer_interrupt)
-        # self.timer.start(50)
+        self.timer=QTimer(self)
+        self.timer.timeout.connect(self.timer_interrupt)
+        self.timer.start(50)
         #线程，替换定时器
-        thread=Thread(target=self.ser_process_thread)
-        thread.start()
+        #thread=Thread(target=self.ser_process_thread)
+        #thread.start()
         #发送指令
         self.ui.pushButton_ser_send.clicked.connect(self.ser_send)
         #把参数显示与参数配置加入list
