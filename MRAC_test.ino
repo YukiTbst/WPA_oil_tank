@@ -9,6 +9,9 @@
 #include "EEPROM.h"
 #include "command_processor.h"
 
+//测试标记
+bool is_test=false;
+
 //odrive相关变量
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
@@ -115,7 +118,7 @@ void sensor_read( void * parameter )
         paramenters[OMEGA]=aggas[5]/180.0f*3.14159f;
         paramenters[BETA]=(paramenters[OMEGA]-last_omega)/dt;
 
-        delay(10);
+        delay(5);
     }
     
     
@@ -149,11 +152,14 @@ void motor_driver(void * parameter)
     {
         odrive_list[i]->set_vel(1);
     }
-    controller_PID controller1(paramenters[KP], paramenters[KI], paramenters[KD])
     paramenters[REF]=paramenters[THETA];
     while(1)
     {
-        delay(20);
+        while(!timmer_flag)
+        {
+            delay(1)
+        }
+        timmer_flag=false;
         if(stop)
         {
             for(int i=0; i<2; i++)
@@ -164,11 +170,11 @@ void motor_driver(void * parameter)
         }
         else
         {
-            controller1.ref_set(paramenters[REF]);
-            controller1.p_set(paramenters[KP]);
-            controller1.i_set(paramenters[KI]);
-            controller1.d_set(paramenters[KD]);
-            float vel_ref=controller1.run_one_step(paramenters[THETA], paramenters[OMEGA]);
+            MRAC_for_coder_ref=(double) paramenters[REF];
+            MRAC_for_coder_theta=(double) paramenters[THETA];
+            MRAC_for_coder_omega=(double) paramenters[OMEGA];
+            MRAC_for_coder_step();
+            float vel_ref=(float) MRAC_for_code_controller_output;
             //vel=odrive1.get_vel();
             paramenters[U]=vel_ref;
             float umax=(160-paramenters[VEL_BAL])*2;
@@ -318,37 +324,121 @@ void timmer(void* paramenter)
         timmer_flag=true;
     }
 }
-//下面这个函数要并入motor_driver
-void MRAC_run(void* paramenter)
+//测试用的任务
+void task_for_test(void * parameter)
 {
     while(1)
     {
-        while(!timmer_flag)
+        if(Serial.available())
         {
-            delay(1)
+            String str=Serial.readStringUntil('\n');
+            if(str.length()>0)
+            {
+                if(command_check(str))
+                {
+                    Serial.println("ok");
+                    command_process(str);
+                }
+                else
+                {
+                    Serial.println("fuck");
+                }
+            }
         }
-        MRAC_for_coder_step();
-        timmer_flag=false;
-        if(MRAC_for_code_controller_output>100)
-        {
-            MRAC_for_code_controller_output=100;
-        }
-        else if(MRAC_for_code_controller_output<-100)
-        {
-            MRAC_for_code_controller_output=-100;
-        }
-        Serial2.write('w');
-        send_double2(MRAC_for_code_controller_output);
-        Serial2.write('\n');
+        delay(10);
     }
+    
 }
-//修改代码，把读取IMU数据的功能独立出来？好像不用，这个是用I2C询问式读取的
-//setup需要改
 void setup() 
 {
+    odrive_serial.begin(115200);
     Serial.begin(115200);
-    Serial2.begin(115200)
     MRAC_for_coder_initialize();
+    if(!Wire.begin(sda, scl, 400000))
+    {
+        Serial.println("Failed to initialise I2C");
+        Serial.println("Restarting...");
+        delay(1000);
+        ESP.restart();
+    }
+    //EEPROM和PID这段其实没用，但数据收发那里可能会用到EEPROM，就把这段copy过来了
+    if (!EEPROM.begin(4096)) 
+    {
+        Serial.println("Failed to initialise EEPROM");
+        Serial.println("Restarting...");
+        delay(1000);
+        ESP.restart();
+    }
+    paramenters[KP]=EEPROM.readFloat(0);
+    if(!(paramenters[KP]==paramenters[KP]))//如果EEPROM里没写过初值，读到的PID都是nan，nan==nan返回false
+    {
+        paramenters[KP]=110;
+    }
+    paramenters[KI]=EEPROM.readFloat(sizeof(float));
+    if(!(paramenters[KI]==paramenters[KI]))
+    {
+        paramenters[KI]=0;
+    }
+    paramenters[KD]=EEPROM.readFloat(sizeof(float)*2);
+    if(!(paramenters[KD]==paramenters[KD]))
+    {
+        paramenters[KD]=30;
+    }
+    if(is_test)
+    {
+        Serial.println("it's a test");
+        xTaskCreatePinnedToCore(
+            task_for_test,          
+            "task_for_test",        
+            10000,            
+            NULL,             
+            5,               
+            NULL,
+            0);
+        xTaskCreatePinnedToCore(
+            data_publisher,          
+            "data_publisher",        
+            10000,            
+            NULL,             
+            4,               
+            NULL,
+            0);          
+    }
+    else
+    {
+        xTaskCreatePinnedToCore(
+            sensor_read,          /*任务函数*/
+            "Tasktwo",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            3,                /*任务的优先级*/
+            NULL,
+            0);  
+        xTaskCreatePinnedToCore(
+            motor_driver,          /*任务函数*/
+            "Taskthree",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            4,                /*任务的优先级*/
+            NULL,
+            1); 
+        xTaskCreatePinnedToCore(
+            command_reader,          /*任务函数*/
+            "Taskfour",        /*带任务名称的字符串*/
+            10000,            /*堆栈大小，单位为字节*/
+            NULL,             /*作为任务输入传递的参数*/
+            2,                /*任务的优先级*/
+            NULL,
+            1);       
+        xTaskCreatePinnedToCore(
+            data_publisher,          
+            "data_publisher",        
+            10000,            
+            NULL,             
+            1,               
+            NULL,
+            0);         
+    }
     xTaskCreatePinnedToCore(
         timmer,          
         "timmer",        
