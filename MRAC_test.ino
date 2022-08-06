@@ -59,6 +59,66 @@ uint8_t sensor_finder()
 	//Serial.print("please check your connection\r\n");
     return 0xff;
 }
+void sensor_data_update_once()
+{
+    while(1)
+    {//sensor_finder();
+        uint8_t datas[24];
+        Wire.beginTransmission(0x50);
+        Wire.write(0x34);
+        Wire.endTransmission(false);
+        int val=Wire.requestFrom(0x50, 24);
+        if(val==0)
+        {
+            Serial.println("Failed");
+            continue;
+        }
+        //Serial.println("Start reading");
+        while (Wire.available()<24)
+        {
+            continue;
+        }
+        for(int i=0; i<24; i++)
+        {
+            datas[i]=Wire.read();
+        }
+        float aggas[12];
+        for(int i=0;i<12;i++)
+        {
+            int16_t t1=datas[2*i];
+            int16_t t2=datas[2*i+1];
+            t1=(t2<<8)+t1;
+            aggas[i]=((float)t1)/ 32768.0f;
+            switch((i-(i%3))/3)
+            {
+                case 0:
+                aggas[i]*=16.0f;
+                break;
+                case 1:
+                aggas[i]*=2000.0f;
+                break;
+                case 3:
+                aggas[i]*=180.0f;
+                break;
+                default:
+                break;
+
+            }
+            //Serial.print(aggas[i]);
+            //Serial.print("\t");
+        }
+        //Serial.print("\n");
+        //delay(500);
+        paramenters[THETA]=aggas[11]/180.0f*3.14159f;
+        uint64_t this_time=millis();
+        float dt=((float)(this_time-last_time))/1000.0f;
+        float last_omega=paramenters[OMEGA];
+        paramenters[OMEGA]=aggas[5]/180.0f*3.14159f;
+        paramenters[BETA]=(paramenters[OMEGA]-last_omega)/dt;
+
+        return;
+    }
+}
 void sensor_read( void * parameter )
 {
     uint64_t last_time=millis();
@@ -152,6 +212,7 @@ void motor_driver(void * parameter)
     {
         odrive_list[i]->set_vel(1);
     }
+    sensor_data_update_once();
     paramenters[REF]=paramenters[THETA];
     while(1)
     {
@@ -170,6 +231,7 @@ void motor_driver(void * parameter)
         }
         else
         {
+            sensor_data_update_once();
             MRAC_for_coder_ref=(double) paramenters[REF];
             MRAC_for_coder_theta=(double) paramenters[THETA];
             MRAC_for_coder_omega=(double) paramenters[OMEGA];
@@ -407,24 +469,16 @@ void setup()
     else
     {
         xTaskCreatePinnedToCore(
-            sensor_read,          /*任务函数*/
-            "Tasktwo",        /*带任务名称的字符串*/
-            10000,            /*堆栈大小，单位为字节*/
-            NULL,             /*作为任务输入传递的参数*/
-            3,                /*任务的优先级*/
-            NULL,
-            0);  
-        xTaskCreatePinnedToCore(
             motor_driver,          /*任务函数*/
-            "Taskthree",        /*带任务名称的字符串*/
+            "motor driver and controller",        /*带任务名称的字符串*/
             10000,            /*堆栈大小，单位为字节*/
             NULL,             /*作为任务输入传递的参数*/
             4,                /*任务的优先级*/
             NULL,
-            1); 
+            0); 
         xTaskCreatePinnedToCore(
             command_reader,          /*任务函数*/
-            "Taskfour",        /*带任务名称的字符串*/
+            "command reader",        /*带任务名称的字符串*/
             10000,            /*堆栈大小，单位为字节*/
             NULL,             /*作为任务输入传递的参数*/
             2,                /*任务的优先级*/
@@ -432,53 +486,21 @@ void setup()
             1);       
         xTaskCreatePinnedToCore(
             data_publisher,          
-            "data_publisher",        
+            "data publisher",        
             10000,            
             NULL,             
             1,               
             NULL,
-            0);         
+            1);    
+        xTaskCreatePinnedToCore(
+            timmer,          
+            "timmer",        
+            10000,            
+            NULL,             
+            5,               
+            NULL,
+            1);     
     }
-    xTaskCreatePinnedToCore(
-        timmer,          
-        "timmer",        
-        10000,            
-        NULL,             
-        5,               
-        NULL,
-        1);
-    xTaskCreatePinnedToCore(
-        MRAC_run,          
-        "MRAC_run",        
-        10000,            
-        NULL,             
-        4,               
-        NULL,
-        0);
-    xTaskCreatePinnedToCore(
-        ser2_input,          
-        "ser2_input",        
-        10000,            
-        NULL,             
-        3,               
-        NULL,
-        1);
-    xTaskCreatePinnedToCore(
-        ser0_input,          
-        "ser0_input",        
-        10000,            
-        NULL,             
-        2,               
-        NULL,
-        1);
-    xTaskCreatePinnedToCore(
-        ser0_print,          
-        "ser0_print",        
-        10000,            
-        NULL,             
-        1,               
-        NULL,
-        1);
 }
 
 void loop() 
